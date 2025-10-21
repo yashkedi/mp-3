@@ -1,37 +1,35 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-type Op = "add" | "sub" | "mul" | "div" | "pow";
 
 const CalcMain = styled.main`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  background-color: #F3F2EC;  
+  background-color: #f3f2ec;
   max-width: 100%;
   margin: 0 auto;
   padding: 10%;
 `;
 
 const Title = styled.h2`
-  color: #E62727;
-  text-align: center;  
-  padding-bottom: 2%;  
-  margin: 0 auto;  
+  color: #e62727;
+  text-align: center;
+  padding-bottom: 2%;
+  margin: 0 auto;
 `;
 
 const Sub = styled.h4`
   margin: 0 auto;
-  padding: 2%;  
+  padding: 2%;
   font-size: calc(3px + 2vw);
   color: black;
   text-align: center;
-    
 `;
 
 const Input = styled.input`
-  display: block;  
+  display: block;
   width: 80%;
   padding: 1%;
   margin: 1% 0;
@@ -41,7 +39,7 @@ const Input = styled.input`
 `;
 
 const Ops = styled.div`
-  display: inline-block; 
+  display: inline-block;
   width: 100%;
   margin: 5% 0;
 `;
@@ -78,47 +76,113 @@ const Output = styled.h3`
   border: 1px solid #ccc;
   background: #ffffff;
   font-size: calc(10px + 2vw);
-  text-align: center;  
+  text-align: center;
 `;
+
+type Op = "add" | "sub" | "mul" | "div" | "pow";
+
+
+function toNum(v: string): number {
+    return Number(v || "0");
+}
+
+
+function useAdd(a: string, b: string) {
+    const [ans, setAns] = useState<number>(0);
+    useEffect(() => {
+        setAns(toNum(a) + toNum(b));
+    }, [a, b]);
+    return ans;
+}
+
+
+function useSub(a: string, b: string) {
+    const [ans, setAns] = useState<number>(0);
+    useEffect(() => {
+        setAns(toNum(a) - toNum(b));
+    }, [a, b]);
+    return ans;
+}
+
+
+function useMul(a: string, b: string) {
+    const [ans, setAns] = useState<number>(0);
+    useEffect(() => {
+        setAns(toNum(a) * toNum(b));
+    }, [a, b]);
+    return ans;
+}
+
+
+function useDiv(a: string, b: string) {
+    const [ans, setAns] = useState<number>(0);
+    useEffect(() => {
+        const A = toNum(a);
+        const B = toNum(b);
+        setAns(B === 0 ? NaN : A / B);
+    }, [a, b]);
+    return ans;
+}
+
+
+function usePow(a: string, b: string) {
+    const [ans, setAns] = useState<number>(0);
+    useEffect(() => {
+        setAns(toNum(a) ** toNum(b));
+    }, [a, b]);
+    return ans;
+}
+
+function useOutputColor(value: number | null) {
+    const [text, setText] = useState<string>("");
+    const [color, setColor] = useState<"black" | "red">("black");
+
+    useEffect(() => {
+        if (value === null) {
+            setText("");
+            setColor("black");
+            return;
+        }
+        if (!Number.isFinite(value)) {
+            setText("Undefined");
+            setColor("black");
+            return;
+        }
+        setText(String(value));
+        setColor(value < 0 ? "red" : "black");
+    }, [value]);
+
+    return { text, color };
+}
+
 
 export default function Project() {
     const [a, setA] = useState<string>("");
     const [b, setB] = useState<string>("");
     const [op, setOp] = useState<Op | null>(null);
 
-    const [result, setResult] = useState<string>("");
-    const [color, setColor] = useState<"black" | "red">("black");
+    const add = useAdd(a, b);
+    const sub = useSub(a, b);
+    const mul = useMul(a, b);
+    const div = useDiv(a, b);
+    const pow = usePow(a, b);
 
-    const setAnswer = (value: number) => {
-        const text = Number.isFinite(value) ? String(value) : "NaN";
-        setResult(text);
-        setColor(value < 0 ? "red" : "black");
-    };
+    let currentValue: number | null = null;
+    switch (op) {
+        case "add": currentValue = add; break;
+        case "sub": currentValue = sub; break;
+        case "mul": currentValue = mul; break;
+        case "div": currentValue = div; break;
+        case "pow": currentValue = pow; break;
+        default: currentValue = null;
+    }
 
-    useEffect(() => {
-        if (!op) {
-            setResult("");
-            setColor("black");
-            return;
-        }
 
-        const A = Number(a || "0");
-        const B = Number(b || "0");
-
-        switch (op) {
-            case "add": setAnswer(A + B); break;
-            case "sub": setAnswer(A - B); break;
-            case "mul": setAnswer(A * B); break;
-            case "div": setAnswer(B === 0 ? NaN : A / B); break;
-            case "pow": setAnswer(A ** B); break;
-        }
-    }, [a, b, op]);
+    const { text, color } = useOutputColor(currentValue);
 
     const clear = () => {
         setA("");
         setB("");
-        setResult("");
-        setColor("black");
         setOp(null);
     };
 
@@ -130,7 +194,7 @@ export default function Project() {
                 <Title>Project</Title>
                 <Sub className="pd">Calculator</Sub>
 
-                <label htmlFor="inputOne" className="sr-only">First Number:</label>
+                <label htmlFor="inputOne">First Number:</label>
                 <Input
                     id="inputOne"
                     placeholder="First Number"
@@ -139,7 +203,7 @@ export default function Project() {
                     onChange={(e) => setA(e.target.value)}
                 />
 
-                <label htmlFor="inputTwo" className="sr-only">Second Number:</label>
+                <label htmlFor="inputTwo">Second Number:</label>
                 <Input
                     id="inputTwo"
                     placeholder="Second Number"
@@ -159,7 +223,7 @@ export default function Project() {
             </Ops>
 
             <Output id="output" style={{ color }}>
-                {result === "NaN" ? "Undefined" : result}
+                {text}
             </Output>
         </CalcMain>
     );
